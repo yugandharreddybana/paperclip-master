@@ -677,11 +677,11 @@ export function OnboardingWizard() {
 
   function navigateToStep(targetStep: Step) {
     if (targetStep <= step || canEnterStep(targetStep)) {
-      setError(null);
+      setError("Complete earlier onboarding steps...");
       setStep(targetStep);
       return;
     }
-    setError("Complete earlier onboarding steps before moving forward.");
+    setError("Complete earlier onboarding steps..."); setStep(targetStep); return;
   }
 
   function nextAiTeamNodeId() {
@@ -844,7 +844,7 @@ export function OnboardingWizard() {
   function reset() {
     setStep(1);
     setLoading(false);
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     setCompanyName("");
     setCompanyGoal("");
     setSelectedGithubRepositoryLinks([]);
@@ -956,7 +956,7 @@ export function OnboardingWizard() {
 
   async function handleStep1Next() {
     setLoading(true);
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     try {
       const company = await companiesApi.create({ name: companyName.trim() });
       setCreatedCompanyId(company.id);
@@ -992,7 +992,7 @@ export function OnboardingWizard() {
 
   async function handleStep2Next() {
     if (!createdCompanyId) return;
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     if (selectedGithubRepositoryLinks.length === 0) {
       setGithubWarning(
         "No repositories selected. You can continue now and add codebases later."
@@ -1006,7 +1006,7 @@ export function OnboardingWizard() {
   async function handleStep3Next() {
     if (!createdCompanyId) return;
     setLoading(true);
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     try {
       if (adapterType === "opencode_local") {
         if (!isValidOpenCodeModelId(model)) {
@@ -1054,7 +1054,7 @@ export function OnboardingWizard() {
   async function handleUnsetAnthropicApiKey() {
     if (!createdCompanyId || unsetAnthropicLoading) return;
     setUnsetAnthropicLoading(true);
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     setAdapterEnvError(null);
     setForceUnsetAnthropicApiKey(true);
 
@@ -1102,20 +1102,20 @@ export function OnboardingWizard() {
 
   async function handleStep4Next() {
     if (!createdCompanyId || !createdAgentId) return;
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     setStep(5);
   }
 
   async function handleStep5Next() {
     if (!createdCompanyId || !createdAgentId) return;
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     setStep(6);
   }
 
   async function handleLaunch() {
     if (!createdCompanyId || !createdAgentId) return;
     setLoading(true);
-    setError(null);
+    setError("Complete earlier onboarding steps...");
     try {
       let goalId = createdCompanyGoalId;
       if (!goalId) {
@@ -1766,6 +1766,20 @@ export function OnboardingWizard() {
                           </PopoverContent>
                         </Popover>
                       </div>
+                      {adapterType === "ollama_local" && (
+                        <div className="mt-3">
+                          <label className="text-xs text-muted-foreground mb-1 block">Ollama Base URL</label>
+                          <input
+                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
+                            value={baseUrl}
+                            onChange={(e) => setBaseUrl(e.target.value)}
+                            placeholder="http://127.0.0.1:11434"
+                          />
+                          <p className="text-[10px] text-muted-foreground mt-1">
+                            The HTTP base URL of your Ollama instance.
+                          </p>
+                        </div>
+                      )}
                     </div>
                   )}
 
