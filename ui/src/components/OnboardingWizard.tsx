@@ -807,7 +807,7 @@ export function OnboardingWizard() {
     if (!fromNodeId || !toNodeId || fromNodeId === toNodeId) return;
 
     const label = relationshipLabel.trim() || (
-      relationshipKind === "ownership" ? "owns" : "collaborates"
+      relationshipKind === "reporting" ? "owns" : "collaborates"
     );
 
     setAiTeamDraft((draft) => {
@@ -2055,7 +2055,7 @@ export function OnboardingWizard() {
                               className="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-[11px]"
                             >
                               <span className="truncate flex-1">
-                                {edge.fromNodeId} {edge.kind === "ownership" ? "=>" : "<->"} {edge.toNodeId}
+                                {edge.fromNodeId} {edge.kind === "reporting" ? "=>" : "<->"} {edge.toNodeId}
                               </span>
                               <button
                                 type="button"
@@ -2133,7 +2133,7 @@ export function OnboardingWizard() {
                             onChange={(e) =>
                               updateSelectedAiTeamNode(
                                 "managerId",
-                                e.target.value ? e.target.value : null
+                                e.target.value ? e.target.value : undefined
                               )
                             }
                           >
