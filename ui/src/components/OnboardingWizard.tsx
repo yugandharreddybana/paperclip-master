@@ -807,7 +807,7 @@ export function OnboardingWizard() {
     if (!fromNodeId || !toNodeId || fromNodeId === toNodeId) return;
 
     const label = relationshipLabel.trim() || (
-      relationshipKind === "ownership" ? "owns" : "collaborates"
+      relationshipKind === "reporting" ? "owns" : "collaborates"
     );
 
     setAiTeamDraft((draft) => {
@@ -1244,9 +1244,9 @@ export function OnboardingWizard() {
               step === 1 ? "md:w-1/2" : "md:w-full"
             )}
           >
-            <div className="w-full max-w-5xl mx-auto my-auto px-8 py-12 shrink-0">
+            <div className="w-full max-w-4xl mx-auto my-auto px-10 py-14 shrink-0">
               {/* Progress tabs */}
-              <div className="flex items-center gap-0 mb-8 border-b border-border overflow-x-auto">
+              <div className="flex items-center gap-6 mb-10 pb-4 border-b border-border/60 overflow-x-auto">
                 {(
                   [
                     { step: 1 as Step, label: "Company Name", icon: Building2 },
@@ -1282,7 +1282,7 @@ export function OnboardingWizard() {
                       <Building2 className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Name your company</h3>
+                      <h3 className="text-lg font-semibold">Name your company</h3>
                       <p className="text-xs text-muted-foreground">
                         This is the organization your agents will work for.
                       </p>
@@ -1300,7 +1300,7 @@ export function OnboardingWizard() {
                       Company name
                     </label>
                     <input
-                      className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                       placeholder="Acme Corp"
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
@@ -1335,7 +1335,7 @@ export function OnboardingWizard() {
                       <Github className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Connect GitHub codebases</h3>
+                      <h3 className="text-lg font-semibold">Connect GitHub codebases</h3>
                       <p className="text-xs text-muted-foreground">
                         Link one or more repositories for this company. You can continue without linking and add them later.
                       </p>
@@ -1381,8 +1381,9 @@ export function OnboardingWizard() {
                             </p>
                             <Button
                               type="button"
+                              variant="default"
                               size="sm"
-                              className="gap-2"
+                              className="gap-2 mt-2"
                               onClick={() => {
                                 void authApi.linkGithubAccount({
                                   callbackURL: window.location.href,
@@ -1406,7 +1407,7 @@ export function OnboardingWizard() {
                         <div className="relative">
                           <Search className="absolute left-2 top-2.5 h-3.5 w-3.5 text-muted-foreground/70" />
                           <input
-                            className="w-full rounded-md border border-border bg-transparent pl-7 pr-2 py-1.5 text-xs outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                            className="w-full rounded-md border border-input bg-background pl-8 pr-3 py-2 text-sm outline-none transition-colors focus:border-primary focus:ring-1 focus:ring-primary placeholder:text-muted-foreground/50"
                             placeholder="Search repositories..."
                             value={githubSearch}
                             onChange={(e) => {
@@ -1415,7 +1416,7 @@ export function OnboardingWizard() {
                             }}
                           />
                         </div>
-                        <div className="rounded-md border border-border/70 max-h-72 overflow-y-auto">
+                        <div className="rounded-md border border-border bg-card max-h-[22rem] overflow-y-auto shadow-xs">
                           {githubReposLoading ? (
                             <div className="py-8 text-xs text-muted-foreground flex items-center justify-center gap-2">
                               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -1437,8 +1438,8 @@ export function OnboardingWizard() {
                                     <button
                                       type="button"
                                       className={cn(
-                                        "w-full px-3 py-2 text-left text-xs flex items-center justify-between gap-2 hover:bg-accent/40 transition-colors",
-                                        selected && "bg-primary/5"
+                                        "w-full px-4 py-3 text-left text-sm flex items-center justify-between gap-3 hover:bg-accent transition-colors border-b border-border/40 last:border-0",
+                                        selected && "bg-primary/5 border-l-2 border-l-primary"
                                       )}
                                       onClick={() => toggleGithubRepository(repo)}
                                     >
@@ -1513,7 +1514,7 @@ export function OnboardingWizard() {
                                 defaultBranch: repo.defaultBranch ?? null,
                               })
                             }
-                            className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs hover:bg-muted/80 transition-colors"
+                            className="inline-flex items-center gap-1.5 rounded-md bg-secondary text-secondary-foreground px-2.5 py-1 text-xs font-medium hover:bg-secondary/80 transition-colors shadow-xs"
                           >
                             {repo.fullName}
                             <X className="h-3 w-3" />
@@ -1524,7 +1525,7 @@ export function OnboardingWizard() {
                   </div>
 
                   {(githubWarning || selectedGithubRepositoryLinks.length === 0) && (
-                    <div className="rounded-md border border-amber-300/60 bg-amber-50/40 px-3 py-2 text-xs text-amber-900/90 flex items-start gap-2">
+                    <div className="rounded-lg border border-amber-500/30 bg-amber-50/50 dark:bg-amber-950/20 px-4 py-3 text-sm text-amber-900 dark:text-amber-200 flex items-start gap-3 shadow-xs">
                       <AlertTriangle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
                       <span>
                         {githubWarning ??
@@ -1542,7 +1543,7 @@ export function OnboardingWizard() {
                       <Bot className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Create your first agent</h3>
+                      <h3 className="text-lg font-semibold">Create your first agent</h3>
                       <p className="text-xs text-muted-foreground">
                         Choose how this agent will run tasks.
                       </p>
@@ -1553,7 +1554,7 @@ export function OnboardingWizard() {
                       Agent name
                     </label>
                     <input
-                      className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                       placeholder="CEO"
                       value={agentName}
                       onChange={(e) => setAgentName(e.target.value)}
@@ -1916,7 +1917,7 @@ export function OnboardingWizard() {
                       <ListTodo className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Define your master task</h3>
+                      <h3 className="text-lg font-semibold">Define your master task</h3>
                       <p className="text-xs text-muted-foreground">
                         The task starts prefilled with the Genesis Architect prompt. You can edit it before launch.
                       </p>
@@ -1927,7 +1928,7 @@ export function OnboardingWizard() {
                       Task title
                     </label>
                     <input
-                      className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
                       placeholder="Task title"
                       value={taskTitle}
                       onChange={(e) => setTaskTitle(e.target.value)}
@@ -1956,7 +1957,7 @@ export function OnboardingWizard() {
                       <Users className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Build your AI team draft</h3>
+                      <h3 className="text-lg font-semibold">Build your AI team draft</h3>
                       <p className="text-xs text-muted-foreground">
                         Seeded from the ARIA template. Edit nodes, reporting lines, and relationships.
                       </p>
@@ -2055,7 +2056,7 @@ export function OnboardingWizard() {
                               className="flex items-center gap-2 rounded-md border border-border px-2 py-1 text-[11px]"
                             >
                               <span className="truncate flex-1">
-                                {edge.fromNodeId} {edge.kind === "ownership" ? "=>" : "<->"} {edge.toNodeId}
+                                {edge.fromNodeId} {edge.kind === "reporting" ? "=>" : "<->"} {edge.toNodeId}
                               </span>
                               <button
                                 type="button"
@@ -2133,7 +2134,7 @@ export function OnboardingWizard() {
                             onChange={(e) =>
                               updateSelectedAiTeamNode(
                                 "managerId",
-                                e.target.value ? e.target.value : null
+                                e.target.value ? e.target.value : undefined
                               )
                             }
                           >
@@ -2214,7 +2215,7 @@ export function OnboardingWizard() {
                       <Rocket className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <h3 className="font-medium">Ready to launch</h3>
+                      <h3 className="text-lg font-semibold">Ready to launch</h3>
                       <p className="text-xs text-muted-foreground">
                         Launching will create the onboarding project and issue, then save your AI team org-map draft document.
                       </p>
@@ -2285,7 +2286,7 @@ export function OnboardingWizard() {
               {/* Error */}
               {error && (
                 <div className="mt-3">
-                  <p className="text-xs text-destructive">{error}</p>
+                  <p className="text-sm font-medium text-destructive bg-destructive/10 px-4 py-3 rounded-lg mt-3">{error}</p>
                 </div>
               )}
 
