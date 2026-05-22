@@ -280,6 +280,7 @@ describe("OnboardingWizard", () => {
   });
 
   it("renders six steps and launches with github links + ai team document persistence", async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true });
     const root = createRoot(container);
     const queryClient = new QueryClient({
       defaultOptions: { queries: { retry: false } },
@@ -347,6 +348,7 @@ describe("OnboardingWizard", () => {
       clickButtonByText(container, "Create & Open Issue");
     });
     await flushReact();
+    await vi.runAllTimersAsync();
     await flushReact();
 
     expect(mockProjectsApi.create).toHaveBeenCalledWith(
@@ -375,4 +377,5 @@ describe("OnboardingWizard", () => {
       root.unmount();
     });
   });
+  vi.useRealTimers();
 });

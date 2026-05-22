@@ -20,6 +20,7 @@ import {
   PopoverTrigger
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "../lib/utils";
 import {
   extractModelName,
@@ -68,6 +69,7 @@ import {
   ArrowRight,
   Check,
   Loader2,
+  CheckCircle2,
   ChevronDown,
   X,
   Github,
@@ -327,6 +329,9 @@ Every repo, service, domain, and major risk surface has a clearly responsible ag
 The CEO-rooted org diagram is accurate, interactive, and fully editable, and can be reused as the foundation for all future skills (planning, QA, security, skill evolution, migrations, growth).`;
 
 export function OnboardingWizard() {
+  const [launchStage, setLaunchStage] = useState<"idle" | "reading_repos" | "hiring" | "done">("idle");
+  const [currentRepoIndex, setCurrentRepoIndex] = useState(0);
+  const [hiredCount, setHiredCount] = useState(0);
   const { onboardingOpen, onboardingOptions, closeOnboarding } = useDialog();
   const { companies, setSelectedCompanyId, loading: companiesLoading } = useCompany();
   const queryClient = useQueryClient();
@@ -677,11 +682,11 @@ export function OnboardingWizard() {
 
   function navigateToStep(targetStep: Step) {
     if (targetStep <= step || canEnterStep(targetStep)) {
-      setError("Complete earlier onboarding steps...");
+      setError(null);
       setStep(targetStep);
       return;
     }
-    setError("Complete earlier onboarding steps..."); setStep(targetStep); return;
+    setError("Complete earlier onboarding steps before moving forward.");
   }
 
   function nextAiTeamNodeId() {
@@ -844,7 +849,7 @@ export function OnboardingWizard() {
   function reset() {
     setStep(1);
     setLoading(false);
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     setCompanyName("");
     setCompanyGoal("");
     setSelectedGithubRepositoryLinks([]);
@@ -956,7 +961,7 @@ export function OnboardingWizard() {
 
   async function handleStep1Next() {
     setLoading(true);
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     try {
       const company = await companiesApi.create({ name: companyName.trim() });
       setCreatedCompanyId(company.id);
@@ -992,7 +997,7 @@ export function OnboardingWizard() {
 
   async function handleStep2Next() {
     if (!createdCompanyId) return;
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     if (selectedGithubRepositoryLinks.length === 0) {
       setGithubWarning(
         "No repositories selected. You can continue now and add codebases later."
@@ -1006,7 +1011,7 @@ export function OnboardingWizard() {
   async function handleStep3Next() {
     if (!createdCompanyId) return;
     setLoading(true);
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     try {
       if (adapterType === "opencode_local") {
         if (!isValidOpenCodeModelId(model)) {
@@ -1054,7 +1059,7 @@ export function OnboardingWizard() {
   async function handleUnsetAnthropicApiKey() {
     if (!createdCompanyId || unsetAnthropicLoading) return;
     setUnsetAnthropicLoading(true);
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     setAdapterEnvError(null);
     setForceUnsetAnthropicApiKey(true);
 
@@ -1102,21 +1107,41 @@ export function OnboardingWizard() {
 
   async function handleStep4Next() {
     if (!createdCompanyId || !createdAgentId) return;
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     setStep(5);
   }
 
   async function handleStep5Next() {
     if (!createdCompanyId || !createdAgentId) return;
-    setError("Complete earlier onboarding steps...");
+    setError(null);
     setStep(6);
   }
 
   async function handleLaunch() {
     if (!createdCompanyId || !createdAgentId) return;
     setLoading(true);
-    setError("Complete earlier onboarding steps...");
+    setLaunchStage("reading_repos");
+    setError(null);
     try {
+      if (selectedGithubRepositoryLinks.length > 0) {
+        for (let i = 0; i < selectedGithubRepositoryLinks.length; i++) {
+          setCurrentRepoIndex(i);
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      } else {
+         await new Promise((resolve) => setTimeout(resolve, 2000));
+      }
+
+      setLaunchStage("hiring");
+      const totalAgentsToHire = aiTeamDraft.nodes.length;
+      for (let i = 1; i <= totalAgentsToHire; i++) {
+        setHiredCount(i);
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      setLaunchStage("done");
+
       let goalId = createdCompanyGoalId;
       if (!goalId) {
         const goals = await goalsApi.list(createdCompanyId);
@@ -1182,6 +1207,7 @@ export function OnboardingWizard() {
       );
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to launch onboarding");
+      setLaunchStage("idle");
     } finally {
       setLoading(false);
     }
@@ -1766,20 +1792,6 @@ export function OnboardingWizard() {
                           </PopoverContent>
                         </Popover>
                       </div>
-                      {adapterType === "ollama_local" && (
-                        <div className="mt-3">
-                          <label className="text-xs text-muted-foreground mb-1 block">Ollama Base URL</label>
-                          <input
-                            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-colors"
-                            value={baseUrl}
-                            onChange={(e) => setBaseUrl(e.target.value)}
-                            placeholder="http://127.0.0.1:11434"
-                          />
-                          <p className="text-[10px] text-muted-foreground mt-1">
-                            The HTTP base URL of your Ollama instance.
-                          </p>
-                        </div>
-                      )}
                     </div>
                   )}
 
@@ -2401,6 +2413,134 @@ export function OnboardingWizard() {
             <AsciiArtAnimation />
           </div>
         </div>
+
+      {/* Dynamic 3D Loader Overlay */}
+      <AnimatePresence>
+        {launchStage !== "idle" && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-background/80 backdrop-blur-md px-4 perspective-[1000px]"
+          >
+            <motion.div
+              initial={{ rotateX: 90, opacity: 0, z: -500 }}
+              animate={{ rotateX: 0, opacity: 1, z: 0 }}
+              transition={{ type: "spring", damping: 20, stiffness: 100 }}
+              className="flex flex-col items-center justify-center space-y-8 max-w-md w-full p-10 rounded-2xl border border-border/50 bg-card/90 shadow-[0_0_100px_rgba(0,0,0,0.2)] dark:shadow-[0_0_100px_rgba(255,255,255,0.05)]"
+              style={{ transformStyle: "preserve-3d" }}
+            >
+              {launchStage === "reading_repos" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex flex-col items-center w-full"
+                >
+                  <div className="relative mb-6">
+                    <motion.div
+                      animate={{
+                        rotateY: [0, 360],
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      className="h-24 w-24 rounded-2xl bg-gradient-to-tr from-primary/80 to-purple-500/80 flex items-center justify-center shadow-lg border border-white/10"
+                      style={{ transformStyle: "preserve-3d" }}
+                    >
+                      <Bot className="h-10 w-10 text-white drop-shadow-md" style={{ transform: "translateZ(30px)" }} />
+                    </motion.div>
+                  </div>
+                  <h3 className="text-2xl font-bold tracking-tight text-foreground mb-2 text-center">CEO is analyzing codebases</h3>
+                  <p className="text-sm text-muted-foreground animate-pulse text-center h-5">
+                    {selectedGithubRepositoryLinks.length > 0
+                      ? `Reading ${selectedGithubRepositoryLinks[currentRepoIndex]?.fullName || "repo"}...`
+                      : "No repositories linked. Analyzing generic tech stacks..."}
+                  </p>
+
+                  {selectedGithubRepositoryLinks.length > 0 && (
+                    <div className="w-full bg-secondary h-2 rounded-full mt-6 overflow-hidden shadow-inner">
+                      <motion.div
+                        initial={{ width: "0%" }}
+                        animate={{ width: `${((currentRepoIndex + 1) / selectedGithubRepositoryLinks.length) * 100}%` }}
+                        transition={{ duration: 0.5 }}
+                        className="bg-gradient-to-r from-primary to-purple-500 h-full"
+                      />
+                    </div>
+                  )}
+                </motion.div>
+              )}
+
+              {launchStage === "hiring" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.8 }}
+                  className="flex flex-col items-center w-full"
+                >
+                  <div className="relative mb-6">
+                    <motion.div
+                      animate={{
+                        rotateX: [0, 360],
+                      }}
+                      transition={{
+                        duration: 2.5,
+                        repeat: Infinity,
+                        ease: "linear"
+                      }}
+                      className="h-24 w-24 rounded-full bg-gradient-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center shadow-[0_0_40px_rgba(16,185,129,0.4)] border border-white/20"
+                      style={{ transformStyle: "preserve-3d" }}
+                    >
+                      <Users className="h-12 w-12 text-white" style={{ transform: "translateZ(30px)" }} />
+                    </motion.div>
+                  </div>
+                  <h3 className="text-2xl font-bold tracking-tight text-foreground mb-2 text-center">Hiring the AI Team</h3>
+                  <p className="text-sm text-muted-foreground text-center">
+                    Dynamically structuring teams, squads, and assigning roles...
+                  </p>
+                  <div className="text-5xl font-black bg-gradient-to-r from-emerald-400 to-emerald-600 bg-clip-text text-transparent my-6 tabular-nums drop-shadow-sm">
+                    {hiredCount} <span className="text-2xl text-muted-foreground/50">/ {aiTeamDraft.nodes.length}</span>
+                  </div>
+                  <div className="w-full bg-secondary/50 h-3 rounded-full overflow-hidden shadow-inner">
+                    <motion.div
+                      className="bg-emerald-500 h-full shadow-[0_0_10px_rgba(16,185,129,0.8)]"
+                      initial={{ width: "0%" }}
+                      animate={{ width: `${(hiredCount / aiTeamDraft.nodes.length) * 100}%` }}
+                      transition={{ duration: 0.1 }}
+                    />
+                  </div>
+                </motion.div>
+              )}
+
+              {launchStage === "done" && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.5, rotateY: -90 }}
+                  animate={{ opacity: 1, scale: 1, rotateY: 0 }}
+                  transition={{ type: "spring", bounce: 0.5 }}
+                  className="flex flex-col items-center w-full"
+                >
+                  <div className="h-24 w-24 rounded-full bg-emerald-500/20 flex items-center justify-center mb-6 ring-4 ring-emerald-500/30">
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                    >
+                      <CheckCircle2 className="h-12 w-12 text-emerald-500 drop-shadow-[0_0_15px_rgba(16,185,129,0.8)]" />
+                    </motion.div>
+                  </div>
+                  <h3 className="text-3xl font-black tracking-tight text-foreground mb-2 text-center bg-gradient-to-br from-foreground to-foreground/60 bg-clip-text text-transparent">Team Assembled!</h3>
+                  <p className="text-md text-muted-foreground text-center">
+                    Launching operations now...
+                  </p>
+                </motion.div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       </DialogPortal>
     </Dialog>
   );
